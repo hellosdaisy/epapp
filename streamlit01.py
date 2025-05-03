@@ -64,8 +64,7 @@ if st.button("Predict"):
     
     # 5. 显示结果
     st.write(f"**Predicted Probability:** {prob_class1:.1%}")
-    st.write(f"**Decision Threshold:** {OPTIMAL_THRESHOLD:.0%}")
-    st.write(f"**Predicted Class:** {predicted_class} (1: High risk, 0: Low risk)")
+    st.write(f"**Predicted Class:** {predicted_class} (1: High risk of EP, 0: Low risk of EP)")
     
     # 6. SHAP解释
     st.subheader("Model Explanation")
