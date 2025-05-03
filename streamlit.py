@@ -49,13 +49,31 @@ HCG = st.selectbox("hCG(mIU/ml):", options=list(HCG_options.keys()), format_func
 feature_values = [Gravidity, History_of_pelvic_surgery, History_of_cesarean_section, Abdominal_tenderness, Vaginal_bleeding, Homogeneous_adnexal_mass, HCG,Progesterone]
 features = np.array([feature_values])
 
-if st.button("Predict"):  
-        # 标准化特征
-    standardized_features = scaler.transform(features)
-
-    # Predict class and probabilities    
-    predicted_class = model.predict(features)[0]    
-    predicted_proba = model.predict_proba(features)[0]
+if st.button("Predict"): 
+    # 将特征分成 "需要标准化的" 和 "不需要标准化的"
+    continuous_features = [Gravidity, HCG, Progesterone]
+    categorical_features = [
+        History_of_pelvic_surgery,
+        History_of_cesarean_section,
+        Abdominal_tenderness,
+        Homogeneous_adnexal_mass,
+        Vaginal_bleeding,
+    ]
+    
+    # 只标准化 3 个连续特征
+    standardized_continuous = scaler.transform([continuous_features])
+    
+    # 组合所有特征（标准化后的 + 原始分类特征）
+    final_features = np.array([
+        standardized_continuous[0][0],  # Gravidity (标准化后)
+        standardized_continuous[0][1],  # HCG (标准化后)
+        standardized_continuous[0][2],  # Progesterone (标准化后)
+        *categorical_features
+    ]).reshape(1, -1)
+    
+    # 预测
+    predicted_class = model.predict(final_features)[0]    
+    predicted_proba = model.predict_proba(final_features)[0]
 
     # Display prediction results    
     st.write(f"**Predicted Class:** {predicted_class}(1: Disease, 0: No Disease)")    
@@ -76,16 +94,28 @@ if st.button("Predict"):
         )
     st.write(advice)
 
-    # SHAP Explanation    
-    st.subheader("SHAP Force Plot Explanation")    
-    explainer_shap = shap.TreeExplainer(model)    
-    shap_values = explainer_shap.shap_values(pd.DataFrame(standardized_features, columns=feature_names))    
-# 将标准化前的原始数据存储在变量中
+# SHAP Explanation
+    st.subheader("SHAP Force Plot Explanation")
+# 获取模型解释器
+    explainer_shap = shap.TreeExplainer(model)
+# 生成 SHAP 值（使用最终预测的 final_features，即 (1, 8) 维度）
+    shap_values = explainer_shap.shap_values(pd.DataFrame(final_features, columns=feature_names))
+# 原始数据（未标准化）用于显示标签
     original_feature_values = pd.DataFrame(features, columns=feature_names)
-# Display the SHAP force plot for the predicted class    
-    if predicted_class == 1:        
-        shap.force_plot(explainer_shap.expected_value[1], shap_values[:,:,1], original_feature_values, matplotlib=True)    
-    else:        
-        shap.force_plot(explainer_shap.expected_value[0], shap_values[:,:,0], original_feature_values, matplotlib=True)    
-    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)    
+# 显示 SHAP 力力图（根据预测类别）
+    if predicted_class == 1:
+        shap.force_plot(
+        explainer_shap.expected_value[1],
+        shap_values[1],  # 预测为 1 类的 SHAP 值
+        original_feature_values,  # 显示原始值
+        matplotlib=True,
+        )
+    else:
+        shap.force_plot(
+        explainer_shap.expected_value[0],
+        shap_values[0],  # 预测为 0 类的 SHAP 值
+        original_feature_values,
+        matplotlib=True,
+    )
+    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
     st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
