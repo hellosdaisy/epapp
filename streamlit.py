@@ -35,7 +35,7 @@ st.title("Ectopic Pregnancy Risk Assessment")
 
 # numerical input
 Gravidity = st.number_input("Gravidity:", min_value=0, max_value=8, value=1)
-Progesterone = st.number_input("Progesterone(ng/ml):", min_value=0.29, max_value=58, value=15)
+Progesterone = st.number_input("Progesterone(ng/ml):", min_value=0.29, max_value=58.0, value=15.0)
 
 #categorical selection
 History_of_pelvic_surgery = st.selectbox("History_of_pelvic_surgery :", options=[0, 1], format_func=lambda x: 'No (0)' if x == 0 else 'Yes (1)')
