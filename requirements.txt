@@ -6,3 +6,5 @@ pandas
 shap
 matplotlib
 StandardScaler
+catboost
+CatBoostClassifier
