@@ -26,8 +26,8 @@ HCG_options = {
 
 # Define feature names
 feature_names = [    
-    "Gravidity", "Progesterone", "History of pelvic surgery", "History of cesarean section", "Abdominal tenderness",    
-    "Homogeneous adnexal mass", "HCG", "Vaginal_bleeding"
+    "Gravidity",  "History of pelvic surgery", "History of cesarean section", "Abdominal tenderness",    
+    "Vaginal_bleeding","Homogeneous adnexal mass", "HCG", "Progesterone"
 ]
 
 # Streamlit user interface
