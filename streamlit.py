@@ -49,73 +49,72 @@ HCG = st.selectbox("hCG(mIU/ml):", options=list(HCG_options.keys()), format_func
 feature_values = [Gravidity, History_of_pelvic_surgery, History_of_cesarean_section, Abdominal_tenderness, Vaginal_bleeding, Homogeneous_adnexal_mass, HCG,Progesterone]
 features = np.array([feature_values])
 
-if st.button("Predict"): 
-    # 将特征分成 "需要标准化的" 和 "不需要标准化的"
-    continuous_features = [Gravidity, HCG, Progesterone]
-    categorical_features = [
-        History_of_pelvic_surgery,
-        History_of_cesarean_section,
-        Abdominal_tenderness,
-        Homogeneous_adnexal_mass,
-        Vaginal_bleeding,
-    ]
-    
-    # 只标准化 3 个连续特征
-    standardized_continuous = scaler.transform([continuous_features])
-    
-    # 组合所有特征（标准化后的 + 原始分类特征）
-    final_features = np.array([
-        standardized_continuous[0][0],  # Gravidity (标准化后)
-        standardized_continuous[0][1],  # HCG (标准化后)
-        standardized_continuous[0][2],  # Progesterone (标准化后)
-        *categorical_features
-    ]).reshape(1, -1)
-    
-    # 预测
-    predicted_class = model.predict(final_features)[0]    
-    predicted_proba = model.predict_proba(final_features)[0]
+# 分离连续变量和分类变量
+continuous_features = [Gravidity,Progesterone]
+categorical_features=[History_of_pelvic_surgery, History_of_cesarean_section,
+       Abdominal_tenderness, Vaginal_bleeding, Homogeneous_adnexal_mass,HCG]
 
-    # Display prediction results    
-    st.write(f"**Predicted Class:** {predicted_class}(1: Disease, 0: No Disease)")    
-    st.write(f"**Prediction Probabilities:** {predicted_proba}")
+# 对连续变量进行标准化
+continuous_features_array = np.array(continuous_features).reshape(1, -1)
+
+# 关键修改：使用 pandas DataFrame 来确保列名
+continuous_features_df = pd.DataFrame(continuous_features_array, columns=['Gravidity','Progesterone'])
+
+# 标准化连续变量
+continuous_features_standardized = scaler.transform(continuous_features_df)
+
+# 将标准化后的连续变量和原始分类变量合并
+# 确保连续特征是二维数组，分类特征是一维数组，合并时要注意维度一致
+categorical_features_array = np.array(categorical_features).reshape(1, -1)
+
+# 将标准化后的连续变量和原始分类变量合并
+final_features = np.hstack([continuous_features_standardized, categorical_features_array])
+
+# 关键修改：确保 final_features 是一个二维数组，并且用 DataFrame 传递给模型
+final_features_df = pd.DataFrame(final_features, columns=feature_names)
+
+if st.button("Predict"): 
+    OPTIMAL_THRESHOLD = 0.611
+    
+    # Predict class and probabilities    
+    #predicted_class = model.predict(final_features_df)[0]   
+    predicted_proba = model.predict_proba(final_features_df)[0]
+    prob_class1 = predicted_proba[1]  # 类别1的概率
+
+    # 根据最优阈值判断类别
+    predicted_class = 1 if prob_class1 >= OPTIMAL_THRESHOLD else 0
+
+
+    # Display prediction results       
+    st.write(f"**Predicted Probability:** {prob_class1:.1%}")
+    st.write(f"**Decision Threshold:** {OPTIMAL_THRESHOLD:.0%} (optimized for clinical utility)")
+    st.write(f"**Predicted Class:** {predicted_class}(1: High risk of EP, 0: Low risk of EP)") 
 
     # Generate advice based on prediction results    
-    probability = predicted_proba[predicted_class] * 100
+    #probability = predicted_proba[predicted_class] * 100
 
-    if predicted_class == 1:        
-        advice = (            
-            f"According to our model, you have a high risk of ectopic pregnancy. "            
-            f"The model predicts that your probability of having ectopic pregnancy is {probability:.1f}%. "                  
-            )    
-    else:
-        advice = (            
-            f"According to our model, you have a low risk of ectopic pregnancy. "            
-            f"The model predicts that your probability of not having ectopic pregnancy is {probability:.1f}%. "                   
-        )
-    st.write(advice)
+    #if predicted_class == 1:        
+    #    advice = (            
+    #        f"According to our model, you have a high risk of ectopic pregnancy. "            
+    #        f"The model predicts that your probability of having ectopic pregnancy is {probability:.1f}%. "           )    
+    #else:
+    #    advice = (            
+    #        f"According to our model, you have a low risk of ectopic pregnancy. "            
+    #        f"The model predicts that your probability of not having ectopic pregnancy is {probability:.1f}%. "                   
+    #    )
+    #st.write(advice)
 
-# SHAP Explanation
-    st.subheader("SHAP Force Plot Explanation")
-# 获取模型解释器
-    explainer_shap = shap.TreeExplainer(model)
-# 生成 SHAP 值（使用最终预测的 final_features，即 (1, 8) 维度）
-    shap_values = explainer_shap.shap_values(pd.DataFrame(final_features, columns=feature_names))
-# 原始数据（未标准化）用于显示标签
+# SHAP Explanation    
+    st.subheader("SHAP Force Plot Explanation")    
+    explainer_shap = shap.TreeExplainer(model)    
+    shap_values = explainer_shap.shap_values(final_features_df)    
+    # 将标准化前的原始数据存储在变量中
     original_feature_values = pd.DataFrame(features, columns=feature_names)
-# 显示 SHAP 力力图（根据预测类别）
-    if predicted_class == 1:
-        shap.force_plot(
-        explainer_shap.expected_value[1],
-        shap_values[1],  # 预测为 1 类的 SHAP 值
-        original_feature_values,  # 显示原始值
-        matplotlib=True,
-        )
-    else:
-        shap.force_plot(
-        explainer_shap.expected_value[0],
-        shap_values[0],  # 预测为 0 类的 SHAP 值
-        original_feature_values,
-        matplotlib=True,
-    )
-    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=300)
+
+    # Display the SHAP force plot for the predicted class    
+    if predicted_class == 1:        
+        shap.force_plot(explainer_shap.expected_value[1], shap_values[1], original_feature_values, matplotlib=True)    
+    else:        
+        shap.force_plot(explainer_shap.expected_value[0], shap_values[0], original_feature_values, matplotlib=True)    
+    plt.savefig("shap_force_plot.png", bbox_inches='tight', dpi=1200)    
     st.image("shap_force_plot.png", caption='SHAP Force Plot Explanation')
