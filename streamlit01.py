@@ -26,7 +26,6 @@ st.title("Ectopic Pregnancy Risk Assessment")
 
 # 用户输入(保持不变)
 Gravidity = st.number_input("Gravidity:", min_value=0, max_value=8, value=1)
-Progesterone = st.number_input("Progesterone(ng/ml):", min_value=0.29, max_value=58.0, value=15.0)
 History_of_pelvic_surgery = st.selectbox("History of pelvic surgery:", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
 History_of_cesarean_section = st.selectbox("History of cesarean section:", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
 Abdominal_tenderness = st.selectbox("Abdominal tenderness:", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
@@ -35,6 +34,7 @@ Vaginal_bleeding = st.selectbox("Vaginal bleeding (compare with menstrual flow):
                               options=list(Vaginal_bleeding_options.keys()), 
                               format_func=lambda x: Vaginal_bleeding_options[x])
 HCG = st.selectbox("hCG(mIU/ml):", options=list(HCG_options.keys()), format_func=lambda x: HCG_options[x])
+Progesterone = st.number_input("Progesterone(ng/ml):", min_value=0.29, max_value=58.0, value=15.0)
 
 if st.button("Predict"):
     # 1. 收集所有特征值
