@@ -10,24 +10,24 @@ scaler = joblib.load('scaler.pkl')
 
 # Define feature options
 Vaginal_bleeding_options = {    
-    0: 'None (0)',    
-    1: 'Less (1)',    
-    2: 'Equivalent (2)'
+    0: 'None',    
+    1: 'Less',    
+    2: 'Equivalent'
 }
 
 HCG_options = {    
-    0: 'hCG＜1000 (0)',    
-    1: '1000≤hCG＜2000 (1)',    
-    2: '2000≤hCG＜3000 (2)',
-    3: '3000≤hCG＜4000 (3)',    
-    4: '4000≤hCG＜5000 (4)', 
-    5: 'hCG≥5000 (5)'
+    0: 'hCG＜1000',    
+    1: '1000≤hCG＜2000',    
+    2: '2000≤hCG＜3000',
+    3: '3000≤hCG＜4000',    
+    4: '4000≤hCG＜5000', 
+    5: 'hCG≥5000'
 }
 
 # Define feature names
 feature_names = [    
-    "Gravidity",  "History of pelvic surgery", "History of cesarean section", "Abdominal tenderness",    
-    "Vaginal_bleeding","Homogeneous adnexal mass", "HCG", "Progesterone"
+    "Gravidity",  "History_of_pelvic_surgery", "History_of_cesarean_section", "Abdominal_tenderness",    
+    "Vaginal_bleeding","Homogeneous_adnexal_mass", "HCG", "Progesterone"
 ]
 
 # Streamlit user interface
@@ -38,11 +38,11 @@ Gravidity = st.number_input("Gravidity:", min_value=0, max_value=8, value=1)
 Progesterone = st.number_input("Progesterone(ng/ml):", min_value=0.29, max_value=58.0, value=15.0)
 
 #categorical selection
-History_of_pelvic_surgery = st.selectbox("History_of_pelvic_surgery :", options=[0, 1], format_func=lambda x: 'No (0)' if x == 0 else 'Yes (1)')
-History_of_cesarean_section = st.selectbox("History_of_cesarean_section :", options=[0, 1], format_func=lambda x: 'No (0)' if x == 0 else 'Yes (1)')
-Abdominal_tenderness= st.selectbox("Abdominal_tenderness :", options=[0, 1], format_func=lambda x: 'No (0)' if x == 0 else 'Yes (1)')
-Homogeneous_adnexal_mass = st.selectbox("Homogeneous_adnexal_mass:", options=[0, 1], format_func=lambda x: 'No (0)' if x == 0 else 'Yes (1)')
-Vaginal_bleeding = st.selectbox("Vaginal_bleeding(compare with menstrual flow):", options=list(Vaginal_bleeding_options.keys()), format_func=lambda x: Vaginal_bleeding_options[x])
+History_of_pelvic_surgery = st.selectbox("History of pelvic surgery :", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
+History_of_cesarean_section = st.selectbox("History of cesarean section :", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
+Abdominal_tenderness= st.selectbox("Abdominal tenderness :", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
+Homogeneous_adnexal_mass = st.selectbox("Homogeneous adnexal mass:", options=[0, 1], format_func=lambda x: 'No' if x == 0 else 'Yes')
+Vaginal_bleeding = st.selectbox("Vaginal bleeding(compare with menstrual flow):", options=list(Vaginal_bleeding_options.keys()), format_func=lambda x: Vaginal_bleeding_options[x])
 HCG = st.selectbox("hCG(mIU/ml):", options=list(HCG_options.keys()), format_func=lambda x: HCG_options[x])
 
 # Process inputs and make predictions
